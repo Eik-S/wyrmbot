@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Update system and install Node.js + Git
+# Update system and install Node.js + Git + build tools
 yum update -y
 curl -fsSL https://rpm.nodesource.com/setup_lts.x | bash -
-yum install -y nodejs git
+yum install -y nodejs git gcc-c++ make
 
 # Create dedicated user for security
 useradd -m -s /bin/bash wyrmbot
@@ -31,6 +31,7 @@ After=network.target
 Type=simple
 User=wyrmbot
 WorkingDirectory=/home/wyrmbot/wyrmbot
+EnvironmentFile=/home/wyrmbot/wyrmbot/.env
 Environment=NODE_ENV=production
 Environment=PATH=/usr/bin:/bin:/usr/local/bin:/home/wyrmbot/wyrmbot/node_modules/.bin
 ExecStart=/home/wyrmbot/wyrmbot/node_modules/.bin/ts-node src/index.ts

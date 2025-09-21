@@ -83,15 +83,13 @@ echo -e "${GREEN}Instance ID: $INSTANCE_ID${NC}"
 # Check if this is a forced rebuild
 if [ "$1" = "--rebuild" ] || [ "$2" = "--rebuild" ]; then
     echo -e "${YELLOW}🔄 Rebuilding instance with latest infrastructure...${NC}"
-    cd _infrastructure
     echo -e "${YELLOW}Terminating current instance...${NC}"
     aws-vault exec private -- aws ec2 terminate-instances --instance-ids $INSTANCE_ID
     echo -e "${YELLOW}Waiting for instance to terminate...${NC}"
     aws-vault exec private -- aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
     echo -e "${YELLOW}Creating new instance...${NC}"
-    aws-vault exec private -- terraform apply -auto-approve
+    (cd _infrastructure && aws-vault exec private -- terraform apply -auto-approve)
     echo -e "${GREEN}✅ New instance created and configured!${NC}"
-    cd ..
 else
     # Restart the instance
     echo -e "${YELLOW}Restarting EC2 instance...${NC}"
