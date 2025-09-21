@@ -1,0 +1,6 @@
+.env
+wyrmbot-key.pem
+node_modules
+temp
+.DS_Store
+_infrastructure/.terraform/*
