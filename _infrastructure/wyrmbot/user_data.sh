@@ -32,8 +32,8 @@ Type=simple
 User=wyrmbot
 WorkingDirectory=/home/wyrmbot/wyrmbot
 Environment=NODE_ENV=production
-Environment=PATH=/usr/bin:/bin:/home/wyrmbot/wyrmbot/node_modules/.bin
-ExecStart=/usr/bin/npm start
+Environment=PATH=/usr/bin:/bin:/usr/local/bin:/home/wyrmbot/wyrmbot/node_modules/.bin
+ExecStart=/home/wyrmbot/wyrmbot/node_modules/.bin/ts-node src/index.ts
 Restart=always
 RestartSec=10
 

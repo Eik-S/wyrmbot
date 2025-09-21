@@ -24,3 +24,19 @@ provider "aws" {
 module "wyrmbot" {
   source = "./wyrmbot"
 }
+
+# Outputs from the module
+output "instance_ip" {
+  description = "Public IP address of the wyrmbot instance"
+  value       = module.wyrmbot.instance_ip
+}
+
+output "instance_id" {
+  description = "Instance ID of the wyrmbot instance"
+  value       = module.wyrmbot.instance_id
+}
+
+output "ssh_command" {
+  description = "SSH command to connect to the instance"
+  value       = module.wyrmbot.ssh_command
+}
