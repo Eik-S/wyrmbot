@@ -43,7 +43,6 @@ async function joinVoiceChannelForListening(voiceChannel: VoiceChannel, client: 
   
   // Check if we're already connected to this voice channel
   if (activeConnections.has(guildId)) {
-    console.log(`Already connected to voice channel in guild ${guildId}`);
     return;
   }
   
@@ -81,8 +80,6 @@ async function joinVoiceChannelForListening(voiceChannel: VoiceChannel, client: 
 }
 
 function setupSpeechDetection(connection: VoiceConnection, voiceChannel: VoiceChannel, client: Client) {
-  console.log('Setting up speech detection and transcription...');
-  
   // Get the voice receiver
   const receiver = connection.receiver;
   
@@ -98,7 +95,7 @@ function setupSpeechDetection(connection: VoiceConnection, voiceChannel: VoiceCh
     // Remove from set after a delay to allow detection again
     setTimeout(() => {
       speakingUsers.delete(userId);
-    }, 2000); // 3 second cooldown per user
+    }, 2000); // 2 second cooldown per user
     
     // Get the user who started speaking
     const user = client.users.cache.get(userId);
@@ -112,14 +109,13 @@ function setupSpeechDetection(connection: VoiceConnection, voiceChannel: VoiceCh
 }
 
 function setupAudioTranscription(receiver: VoiceReceiver, userId: string, username: string, guild: Guild) {
-  console.log(`Setting up transcription for ${username}`);
   const audioProcessor = new AudioProcessor()
   
   // Subscribe to the user's audio stream
   const audioStream = receiver.subscribe(userId, {
     end: {
       behavior: EndBehaviorType.AfterSilence,
-      duration: 2000, // End after 1 second of silence
+      duration: 2000, // End after 2 seconds of silence
     },
   });
   
@@ -144,8 +140,6 @@ function setupAudioTranscription(receiver: VoiceReceiver, userId: string, userna
   
   // Process audio when stream ends (after silence)
   opusDecoder.on('end', () => {
-    console.log(`Audio stream ended for ${username}, processing ${audioChunks.length} PCM chunks`);
-    
     if (audioChunks.length < 100) {
       console.log(`ignoring ${audioChunks.length}, too short.`)
       return
@@ -153,9 +147,8 @@ function setupAudioTranscription(receiver: VoiceReceiver, userId: string, userna
 
     // Combine all audio chunks
     const combinedAudio = Buffer.concat(audioChunks);
-    console.log(`Processing combined PCM audio: ${combinedAudio.length} bytes for ${username}`);
     
-    // Process the audio directly with the transcription service
+    // Process the audio with the transcription service
     audioProcessor.processAudioBuffer(combinedAudio, userId, username, (transcription: string) => {
       sendTranscriptionMessage(guild, username, transcription);
     });
@@ -180,9 +173,6 @@ async function sendTranscriptionMessage(guild: Guild, username: string, transcri
     
     if (generalChannel) {
       await generalChannel.send(`🗣️ **${username}**: ${transcription}`);
-      console.log(`Sent transcription for ${username}: ${transcription}`);
-    } else {
-      console.log('General channel not found');
     }
   } catch (error) {
     console.error('Failed to send transcription message:', error);

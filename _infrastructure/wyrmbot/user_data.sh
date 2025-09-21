@@ -8,37 +8,17 @@ yum install -y nodejs git
 # Create dedicated user for security
 useradd -m -s /bin/bash wyrmbot
 
-# Create app directory and .env file
-mkdir -p /home/wyrmbot/wyrmbot
+# Clone the latest source code from GitHub
+cd /home/wyrmbot
+sudo -u wyrmbot git clone https://github.com/Eik-S/wyrmbot.git wyrmbot
+
+# Create .env file with secrets
 cat > /home/wyrmbot/wyrmbot/.env << 'EOF'
 ${env_content}
 EOF
 
-# Create package.json and source files
-cd /home/wyrmbot/wyrmbot
-cat > package.json << 'EOF'
-{
-  "name": "wyrmbot",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "ts-node src/index.ts"
-  },
-  "dependencies": {
-    "discord.js": "^14.22.1",
-    "@discordjs/voice": "^0.19.0",
-    "openai": "^4.30.0",
-    "prism-media": "^1.3.5",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0"
-  }
-}
-EOF
-
-# Download and extract source code from deployment package
-# This will be populated by terraform apply / deploy script
-mkdir -p src/voice src/utils
-
 # Install dependencies
+cd /home/wyrmbot/wyrmbot
 sudo -u wyrmbot npm install
 
 # Create systemd service
@@ -60,9 +40,23 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
+# Create update script for easy maintenance
+cat > /home/wyrmbot/update-wyrmbot.sh << 'EOF'
+#!/bin/bash
+echo "Updating Wyrmbot to latest version..."
+cd /home/wyrmbot/wyrmbot
+git pull origin main
+npm install
+sudo systemctl restart wyrmbot
+echo "Wyrmbot updated and restarted!"
+EOF
+chmod +x /home/wyrmbot/update-wyrmbot.sh
+chown wyrmbot:wyrmbot /home/wyrmbot/update-wyrmbot.sh
+
 # Set proper ownership and enable service
 chown -R wyrmbot:wyrmbot /home/wyrmbot
 systemctl daemon-reload
 systemctl enable wyrmbot
 
-# Service will start when code is deployed
+# Start the service immediately
+systemctl start wyrmbot

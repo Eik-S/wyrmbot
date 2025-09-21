@@ -2,7 +2,6 @@ import OpenAI from 'openai';
 import path from 'node:path';
 import * as fs from 'node:fs'
 
-// Mock speech-to-text service - replace with actual service
 interface SpeechToTextOptions {
   language: 'en-US' | 'de-DE' | 'auto';
   sampleRate: number;
@@ -21,19 +20,16 @@ class SpeechTranscriptionService {
 
   async transcribeAudio(audioBuffer: Buffer): Promise<string | null> {
     try {
-      console.log(`Processing audio buffer of ${audioBuffer.length} bytes for transcription`);
-      
       // Check minimum audio length (48kHz * 1 channel * 2 bytes * 0.1 seconds = ~9,600 bytes minimum)
       const minAudioLength = 48000 * 1 * 2 * 0.1; // 0.1 seconds minimum for mono
       if (audioBuffer.length < minAudioLength) {
-        console.log(`Audio too short: ${audioBuffer.length} bytes (minimum: ${minAudioLength})`);
         return null;
       }
       
       // Save audio buffer to temporary file (Whisper API requires file input)
       const tempFilePath = path.join(__dirname, '../../temp', `audio_${Date.now()}.wav`);
       
-      // Ensure temp and debug directories exist
+      // Ensure temp directory exists
       const tempDir = path.dirname(tempFilePath);
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
@@ -43,10 +39,6 @@ class SpeechTranscriptionService {
       const wavBuffer = this.createWavBuffer(audioBuffer, 48000, 1); // 48kHz, mono
       fs.writeFileSync(tempFilePath, wavBuffer);
       
-      // Check if the WAV file was created successfully
-      const fileStats = fs.statSync(tempFilePath);
-      console.log(`Created WAV file: ${fileStats.size} bytes (audio duration: ~${(audioBuffer.length / (48000 * 1 * 2)).toFixed(2)} seconds)`);
-      
       const transcription = await this.openai.audio.transcriptions.create({
         file: fs.createReadStream(tempFilePath),
         model: 'whisper-1',
@@ -54,11 +46,9 @@ class SpeechTranscriptionService {
         response_format: 'text',
       });
       
-
-      // Clean up temporary file (but keep debug file)
+      // Clean up temporary file
       fs.unlinkSync(tempFilePath);
       
-      console.log(`Transcription result: "${transcription}"`);
       return transcription || null;
     } catch (error) {
       console.error('Whisper transcription error:', error);
@@ -105,12 +95,9 @@ export class AudioProcessor {
     });
   }
 
-  // New simplified method to process audio buffer directly
+  // Process audio buffer and call transcription service
   async processAudioBuffer(audioBuffer: Buffer, _userId: string, username: string, onTranscription: (text: string) => void) {
-    console.log(`Processing audio buffer for ${username}: ${audioBuffer.length} bytes`);
-    
     try {
-      // Directly transcribe the audio buffer
       const transcription = await this.transcriptionService.transcribeAudio(audioBuffer);
       
       if (transcription?.trim()) {

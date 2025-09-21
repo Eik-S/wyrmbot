@@ -3,16 +3,15 @@ import { setupVoiceListener } from './voice/voice-listener';
 
 async function main() {
   if (process.env.NODE_ENV === 'dev') {
-    console.log('i get here')
     await import('dotenv').then((dotenv) => {
       dotenv.config()
     })
   }
-  await pingServer()
-  await exampleBot()
+  await registerCommands()
+  await startBot()
 }
 
-async function pingServer() {
+async function registerCommands() {
   const CLIENT_ID = process.env.DISCORD_CLIENT_ID
   const TOKEN = process.env.DISCORD_TOKEN
   if (!CLIENT_ID || !TOKEN) {
@@ -39,10 +38,10 @@ async function pingServer() {
   }
 }
 
-async function exampleBot() {
+async function startBot() {
   const TOKEN = process.env.DISCORD_TOKEN
   if (!TOKEN) {
-    console.error('DISCORD_TOKEN env variable missing missing')
+    console.error('DISCORD_TOKEN env variable missing')
     return
   }
 
